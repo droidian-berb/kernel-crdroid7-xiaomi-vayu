@@ -92,6 +92,13 @@ PECOFF_FILE_ALIGNMENT = 0x200;
 #define PECOFF_EDATA_PADDING
 #endif
 
+PHDRS {
+  text PT_LOAD FLAGS(5);  /* Read + Execute */
+  data PT_LOAD FLAGS(6);  /* Read + Write */
+  init PT_LOAD FLAGS(6);  /* Read + Write */
+  bss PT_LOAD FLAGS(6);   /* Read + Write */
+}
+
 SECTIONS
 {
 	/*
@@ -116,7 +123,7 @@ SECTIONS
 	.head.text : {
 		_text = .;
 		HEAD_TEXT
-	}
+	} :text
 	.text : {			/* Real text segment		*/
 		_stext = .;		/* Text and read-only data	*/
 			__exception_text_start = .;
@@ -138,7 +145,9 @@ SECTIONS
 			*(.gnu.warning)
 		. = ALIGN(16);
 		*(.got)			/* Global offset table		*/
-	}
+	} :text
+
+        .plt : { *(.plt) } :text
 
 	. = ALIGN(SEGMENT_ALIGN);
 	_etext = .;			/* End of text section */
@@ -178,12 +187,12 @@ SECTIONS
 		SECURITY_INITCALL
 		INIT_RAM_FS
 		*(.init.rodata.* .init.bss)	/* from the EFI stub */
-	}
+	} :init
 	.exit.data : {
 		ARM_EXIT_KEEP(EXIT_DATA)
 	}
 
-	PERCPU_SECTION(L1_CACHE_BYTES)
+	PERCPU_SECTION(L1_CACHE_BYTES) :data
 
 	.rela.dyn : ALIGN(8) {
 		*(.rela .rela*)
@@ -207,7 +216,7 @@ SECTIONS
 
 	_data = .;
 	_sdata = .;
-	RW_DATA_SECTION(L1_CACHE_BYTES, PAGE_SIZE, THREAD_ALIGN)
+	RW_DATA_SECTION(L1_CACHE_BYTES, PAGE_SIZE, THREAD_ALIGN) :data
 
 	/*
 	 * Data written with the MMU off but read with the MMU on requires
