@@ -1,11 +1,11 @@
 From fa610743ce5916f54fbeb99ae21288aad67acba1 Mon Sep 17 00:00:00 2001
 From: berbascum <berbascum@ticv.cat>
 Date: Sat, 20 Jul 2024 01:41:01 +0200
-Subject: [PATCH] Import Droidian build support and debian packaging from
- droidian-vayu 4.14.190 kernel source
+Subject: [PATCH] Import Droidian build support and debian packaging
+from droidian-vayu 4.14.190 kernel source
 
 ---
- .gitignore                                    |  24 +-
+ .gitignore                                    | 23 ++++++++++++++++++++++-
  debian/compat                                 |   1 +
  debian/control                                |  80 +++++++
  debian/initramfs-overlay/scripts/halium-hooks |   9 +
@@ -18,7 +18,7 @@ Subject: [PATCH] Import Droidian build support and debian packaging from
  droidian/vayu-ext.config                      |  30 +++
  droidian/vayu-sample.config                   |  30 +++
  droidian/vayu.config                          |  19 ++
- 13 files changed, 505 insertions(+), 1 deletion(-)
+ 14 files changed, 525 insertions(+), s deletions(-)
  create mode 100644 debian/compat
  create mode 100644 debian/control
  create mode 100755 debian/initramfs-overlay/scripts/halium-hooks
@@ -45,11 +45,10 @@ index 28804b05bb50..c15d2c19720c 100644
  
  #
  # tar directory (make tar*-pkg)
-@@ -131,3 +131,25 @@ kernel/configs/android-*.cfg
- #Ignoring Android.bp link file
+@@ -132,6 +132,27 @@ kernel/configs/android-*.cfg
  #
  Android.bp
-+
+ 
 +# Droidian
 +!.gitmodules
 +!debian
@@ -63,7 +62,6 @@ index 28804b05bb50..c15d2c19720c 100644
 +debian/*.postinst
 +out/
 +#
-+#
 +# Added by Droidian
 +!.circleci/
 +#
@@ -71,6 +69,10 @@ index 28804b05bb50..c15d2c19720c 100644
 +#compile-droidian-kernel.sh
 +build-berb*.log
 +droidian/python
++
+ ## Folllow patches from droidian dir
+ !droidian/patches
+ !droidian/**/*.patch
 diff --git a/debian/compat b/debian/compat
 new file mode 100644
 index 000000000000..b1bd38b62a08
