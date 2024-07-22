@@ -1,4 +1,4 @@
-From 5b420239154b38992139d81c544014cb334f9c2a Mon Sep 17 00:00:00 2001
+From 8e5f17790710b13b38d4d154cdf7faec80a46980 Mon Sep 17 00:00:00 2001
 From: Alfred Neumayer <dev.beidl@gmail.com>
 Date: Thu, 30 Sep 2021 20:01:29 +0200
 Subject: [PATCH] net: Import WireGuard into kernel tree
@@ -210,7 +210,7 @@ index 86bdbada4057..0ec2c5b600ed 100644
 +++ b/net/Kconfig
 @@ -85,6 +85,7 @@ config INET
  	  Short answer: say Y.
-
+ 
  if INET
 +source "net/wireguard/Kconfig"
  source "net/ipv4/Kconfig"
@@ -23222,7 +23222,7 @@ new file mode 100644
 index 000000000000..d30a03d79177
 --- /dev/null
 +++ b/net/wireguard/crypto/zinc/poly1305/poly1305-mips64.pl
-@@ -0,0 +1,467 @@
+@@ -0,0 +1,466 @@
 +#!/usr/bin/env perl
 +# SPDX-License-Identifier: GPL-2.0 OR BSD-3-Clause
 +#
@@ -23689,7 +23689,6 @@ index 000000000000..d30a03d79177
 +$output=pop and open STDOUT,">$output";
 +print $code;
 +close STDOUT;
-+
 diff --git a/net/wireguard/crypto/zinc/poly1305/poly1305-x86_64-glue.c b/net/wireguard/crypto/zinc/poly1305/poly1305-x86_64-glue.c
 new file mode 100644
 index 000000000000..ce48a42f7654
@@ -23857,7 +23856,7 @@ new file mode 100644
 index 000000000000..f994855cdbe2
 --- /dev/null
 +++ b/net/wireguard/crypto/zinc/poly1305/poly1305-x86_64.pl
-@@ -0,0 +1,4266 @@
+@@ -0,0 +1,4265 @@
 +#!/usr/bin/env perl
 +# SPDX-License-Identifier: GPL-2.0 OR BSD-3-Clause
 +#
@@ -24721,7 +24720,6 @@ index 000000000000..f994855cdbe2
 +	sub		\$-8,%rsp
 +	lea		-0x58(%rsp),%r11
 +	sub		\$0x178,%rsp
-+	
 +___
 +$code.=<<___	if ($win64);
 +	lea		-0xf8(%rsp),%r11
@@ -51385,5 +51383,6 @@ index 000000000000..937c8915aa1e
 +#ifndef WIREGUARD_VERSION
 +#define WIREGUARD_VERSION "1.0.20210606"
 +#endif
---
+-- 
 2.39.2
+
