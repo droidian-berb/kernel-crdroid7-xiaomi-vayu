@@ -1,0 +1,38 @@
+From 19445bc8488983df0dd23e9d4b44dc63b892f4ee Mon Sep 17 00:00:00 2001
+From: Alfred Neumayer <dev.beidl@gmail.com>
+Date: Tue, 14 Dec 2021 11:22:23 +0100
+Subject: [PATCH] binder: Configurable global PID lookups
+
+This reshakes commit d2587ce3968c6fdde3cf09d785bb957c4b75572f
+and implements a kernel parameter to explicitly allow disabling
+the behavior change to look up caller PIDs in the global namespace.
+---
+ drivers/android/binder.c | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/drivers/android/binder.c b/drivers/android/binder.c
+index dc2d9d93580d..64252efc761a 100644
+--- a/drivers/android/binder.c
++++ b/drivers/android/binder.c
+@@ -145,6 +145,9 @@ static int binder_set_stop_on_user_error(const char *val,
+ module_param_call(stop_on_user_error, binder_set_stop_on_user_error,
+ 	param_get_int, &binder_stop_on_user_error, 0644);
+ 
++static bool binder_global_pid_lookups = true;
++module_param_named(global_pid_lookups, binder_global_pid_lookups, bool, S_IRUGO);
++
+ #ifdef DEBUG
+ #define binder_debug(mask, x...) \
+ 	do { \
+@@ -4437,6 +4440,8 @@ static int binder_thread_read(struct binder_proc *proc,
+ 			trd->sender_pid =
+ 				task_tgid_nr_ns(sender,
+ 						task_active_pid_ns(current));
++			if (binder_global_pid_lookups && trd->sender_pid == 0)
++				trd->sender_pid = task_tgid_nr(sender);
+ 		} else {
+ 			trd->sender_pid = 0;
+ 		}
+-- 
+2.39.2
+

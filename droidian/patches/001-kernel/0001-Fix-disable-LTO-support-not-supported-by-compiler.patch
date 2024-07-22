@@ -1,0 +1,38 @@
+From 43022ec56166ef92b2df5d608f3042b4fb044014 Mon Sep 17 00:00:00 2001
+From: berbascum <berbascum@ticv.cat>
+Date: Mon, 22 Jul 2024 12:04:43 +0200
+Subject: [PATCH] (build) Fix: disable LTO support
+ 
+ Is not supported by the Droidian compiler
+
+ Fixes "--thinlto-cache-dir=.thinlto-cache unknown option"
+
+---
+ arch/arm64/configs/vayu_user_defconfig | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/arch/arm64/configs/vayu_user_defconfig b/arch/arm64/configs/vayu_user_defconfig
+index 6563dbefa9a8..05f731d147eb 100644
+--- a/arch/arm64/configs/vayu_user_defconfig
++++ b/arch/arm64/configs/vayu_user_defconfig
+@@ -281,12 +281,12 @@ CONFIG_CC_STACKPROTECTOR=y
+ # CONFIG_CC_STACKPROTECTOR_REGULAR is not set
+ CONFIG_CC_STACKPROTECTOR_STRONG=y
+ CONFIG_THIN_ARCHIVES=y
+-CONFIG_LTO=y
+-CONFIG_ARCH_SUPPORTS_LTO_CLANG=y
+-CONFIG_ARCH_SUPPORTS_THINLTO=y
+-CONFIG_THINLTO=y
++# CONFIG_LTO is not defined
++# CONFIG_ARCH_SUPPORTS_LTO_CLANG is not defined
++# CONFIG_ARCH_SUPPORTS_THINLTO is not defined
++# CONFIG_THINLTO is not defined
+ # CONFIG_LTO_NONE is not set
+-CONFIG_LTO_CLANG=y
++# CONFIG_LTO_CLANG is not defined
+ CONFIG_CFI=y
+ # CONFIG_CFI_PERMISSIVE is not set
+ CONFIG_CFI_CLANG=y
+-- 
+2.39.2
+

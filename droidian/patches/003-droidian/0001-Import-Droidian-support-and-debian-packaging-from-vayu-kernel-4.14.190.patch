@@ -1,0 +1,630 @@
+From fa610743ce5916f54fbeb99ae21288aad67acba1 Mon Sep 17 00:00:00 2001
+From: berbascum <berbascum@ticv.cat>
+Date: Sat, 20 Jul 2024 01:41:01 +0200
+Subject: [PATCH] Import Droidian build support and debian packaging from
+ droidian-vayu 4.14.190 kernel source
+
+---
+ .gitignore                                    |  24 +-
+ debian/compat                                 |   1 +
+ debian/control                                |  80 +++++++
+ debian/initramfs-overlay/scripts/halium-hooks |   9 +
+ debian/kernel-info.mk                         | 222 ++++++++++++++++++
+ debian/rules                                  |   6 +
+ debian/source/format                          |   1 +
+ droidian/common_fragments/debug.config        |   5 +
+ droidian/common_fragments/droidian.config     |  29 +++
+ droidian/common_fragments/halium.config       |  50 ++++
+ droidian/vayu-ext.config                      |  30 +++
+ droidian/vayu-sample.config                   |  30 +++
+ droidian/vayu.config                          |  19 ++
+ 13 files changed, 505 insertions(+), 1 deletion(-)
+ create mode 100644 debian/compat
+ create mode 100644 debian/control
+ create mode 100755 debian/initramfs-overlay/scripts/halium-hooks
+ create mode 100644 debian/kernel-info.mk
+ create mode 100755 debian/rules
+ create mode 100644 debian/source/format
+ create mode 100644 droidian/common_fragments/debug.config
+ create mode 100644 droidian/common_fragments/droidian.config
+ create mode 100644 droidian/common_fragments/halium.config
+ create mode 100644 droidian/vayu-ext.config
+ create mode 100644 droidian/vayu-sample.config
+ create mode 100644 droidian/vayu.config
+
+diff --git a/.gitignore b/.gitignore
+index 28804b05bb50..c15d2c19720c 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -63,7 +63,7 @@ modules.builtin
+ #
+ # Debian directory (make deb-pkg)
+ #
+-/debian/
++#/debian/
+ 
+ #
+ # tar directory (make tar*-pkg)
+@@ -131,3 +131,25 @@ kernel/configs/android-*.cfg
+ #Ignoring Android.bp link file
+ #
+ Android.bp
++
++# Droidian
++!.gitmodules
++!debian
++!debian/changelog
++debian/path-override
++debian/*.substvars
++debian/*.debhelper
++debian/files
++debian/debhelper-build-stamp
++debian/linux-*/
++debian/*.postinst
++out/
++#
++#
++# Added by Droidian
++!.circleci/
++#
++# Aded by Berbascum
++#compile-droidian-kernel.sh
++build-berb*.log
++droidian/python
+diff --git a/debian/compat b/debian/compat
+new file mode 100644
+index 000000000000..b1bd38b62a08
+--- /dev/null
++++ b/debian/compat
+@@ -0,0 +1 @@
++13
+diff --git a/debian/control b/debian/control
+new file mode 100644
+index 000000000000..7c27b792c119
+--- /dev/null
++++ b/debian/control
+@@ -0,0 +1,80 @@
++Source: linux-android-xiaomi-vayu
++Section: kernel
++Priority: optional
++Maintainer: Droidian porters <info@droidian.org>
++Uploaders: Eugenio Paolantonio (g7) <eugenio@droidian.org>,
++           r3vn <giuseppe@droidian.org>,
++           Erfan Abdi <erfan@droidian.org>,
++           Erik Inkinen <erik@droidian.org>,
++           Bardia Moshiri <fakeshell@bardia.tech>,
++XS-Droidian-Host-Arch: arm64
++XS-Droidian-Build-On: amd64
++Build-Depends: build-essential,
++               dpkg-dev,
++               findutils,
++               android-platform-prebuilts-python-linux-x86-2.7.5,
++               debhelper (>= 13),
++               bc,
++               rsync,
++               kmod,
++               cpio,
++               bison,
++               flex,
++               libssl-dev,
++               linux-initramfs-halium-generic,
++               linux-packaging-snippets,
++               android-sdk-ufdt-tests,
++               mkbootimg (>= 10.0.0),
++               mkdtboimg,
++               avbtool,
++               lz4,
++               vim, linux-packaging-snippets, linux-initramfs-halium-generic:arm64, binutils-aarch64-linux-gnu, clang-android-10.0-r370808, gcc-4.9-aarch64-linux-android, g++-4.9-aarch64-linux-android, libgcc-4.9-dev-aarch64-linux-android-cross
++Standards-Version: 4.5.0.3
++Vcs-Browser: https://github.com/droidian-devices/linux-android-xiaomi-vayu
++Vcs-Git: https://github.com/droidian-devices/linux-android-xiaomi-vayu.git
++
++Package: linux-image-4.14-190-xiaomi-vayu
++Architecture: arm64
++Depends: ${misc:Depends}
++Description: Linux kernel for Xiaomi Pocophone X3 Pro
++ This package contains the Linux kernel for the Xiaomi Pocophone X3 Pro device.
++ .
++ Note: This package only ships the kernel image and modules, you should probably
++ look at the linux-bootimage-4.14-190-xiaomi-vayu package for a bootimage suitable
++ for Android boot loaders.
++
++Package: linux-bootimage-4.14-190-xiaomi-vayu
++Architecture: arm64
++Pre-Depends: flash-bootimage (>= 4)
++Depends: ${misc:Depends},
++         linux-image-4.14-190-xiaomi-vayu (= ${binary:Version})
++Description: Linux kernel for Xiaomi Pocophone X3 Pro - Android Boot Image
++ This package contains the Linux kernel for the Xiaomi Pocophone X3 Pro device.
++ .
++ Note: This package ships an Android Boot Image bundled with Halium's
++ initramfs.
++
++Package: linux-headers-4.14-190-xiaomi-vayu
++Architecture: arm64
++Depends: ${misc:Depends},
++         linux-image-4.14-190-xiaomi-vayu (= ${binary:Version})
++Description: Linux kernel for Xiaomi Pocophone X3 Pro - Headers
++ This package contains the Linux kernel headers for the Xiaomi Pocophone X3 Pro device.
++
++Package: linux-image-xiaomi-vayu
++Architecture: arm64
++Depends: linux-image-4.14-190-xiaomi-vayu (= ${binary:Version})
++Description: Linux kernel for Xiaomi Pocophone X3 Pro (latest)
++ This package depends to the latest kernel image available for the Xiaomi Pocophone X3 Pro.
++
++Package: linux-bootimage-xiaomi-vayu
++Architecture: arm64
++Depends: linux-bootimage-4.14-190-xiaomi-vayu (= ${binary:Version})
++Description: Linux kernel for Xiaomi Pocophone X3 Pro - Android Boot Image  (latest)
++ This package depends to the latest kernel bootimage available for the Xiaomi Pocophone X3 Pro.
++
++Package: linux-headers-xiaomi-vayu
++Architecture: arm64
++Depends: linux-headers-4.14-190-xiaomi-vayu (= ${binary:Version})
++Description: Linux kernel for Xiaomi Pocophone X3 Pro - Headers (latest)
++ This package depends to the latest kernel headers available for the Xiaomi Pocophone X3 Pro.
+diff --git a/debian/initramfs-overlay/scripts/halium-hooks b/debian/initramfs-overlay/scripts/halium-hooks
+new file mode 100755
+index 000000000000..2c099fb636fc
+--- /dev/null
++++ b/debian/initramfs-overlay/scripts/halium-hooks
+@@ -0,0 +1,9 @@
++# Initramfs hooks for Xiaomi Pocophone X3 Pro
++
++halium_hook_setup_touchscreen() {
++	echo 1 > /sys/class/leds/:kbd_backlight/brightness
++}
++
++halium_hook_teardown_touchscreen() {
++	echo 0 > /sys/class/leds/:kbd_backlight/brightness
++}
+diff --git a/debian/kernel-info.mk b/debian/kernel-info.mk
+new file mode 100644
+index 000000000000..5b2db9630b05
+--- /dev/null
++++ b/debian/kernel-info.mk
+@@ -0,0 +1,222 @@
++########################################################################
++# Kernel settings
++########################################################################
++
++# Kernel variant. This is currently used only on the Source package name.
++# Use 'android' for Android kernels ("downstream") or 'mainline' for upstream
++# kernels.
++VARIANT = android
++
++# Kernel base version
++KERNEL_BASE_VERSION = 4.14-290
++
++# The kernel cmdline to use
++KERNEL_BOOTIMAGE_CMDLINE = androidboot.hardware=qcom androidboot.console=ttyMSM0 androidboot.memcg=1 lpm_levels.sleep_disabled=1 video=vfb:640x400,bpp=32,memsize=3072000 msm_rtb.filter=0x237 service_locator.enable=1 swiotlb=2048 loop.max_part=7 androidboot.usbcontroller=a600000.dwc3 console=tty0 droidian.lvm.prefer
++
++# Slug for the device vendor. This is going to be used in the KERNELRELASE
++# and package names.
++DEVICE_VENDOR = xiaomi
++
++# Slug for the device model. Like above.
++DEVICE_MODEL = vayu
++
++# Slug for the device platform. If unsure, keep this commented.
++# DEVICE_PLATFORM = platform
++
++# Marketing-friendly full-name. This will be used inside package descriptions
++DEVICE_FULL_NAME = Xiaomi Pocophone X3 Pro
++
++# Whether to use configuration fragments to augment the kernel configuration.
++# If unsure, keep this to 0.
++KERNEL_CONFIG_USE_FRAGMENTS = 1
++
++# Whether to use diffconfig to generate the device-specific configuration.
++# If you enable this, you should set KERNEL_CONFIG_USE_FRAGMENTS to 1.
++# If unsure, keep this to 0.
++KERNEL_CONFIG_USE_DIFFCONFIG = 0
++
++# The diffconfig to apply. Only used when KERNEL_CONFIG_USE_DIFFCONFIG is
++# enabled.
++# KERNEL_PRODUCT_DIFFCONFIG = my_diffconfig
++
++# Defconfig to use
++KERNEL_DEFCONFIG = vayu_user_defconfig
++
++# Whether to include DTBs with the image. Use 0 (no) or 1.
++# GKI devices should set this to 0
++KERNEL_IMAGE_WITH_DTB = 1
++
++# Path to the DTB
++# If you leave this undefined, an attempt to find it automatically
++# will be made.
++KERNEL_IMAGE_DTB = arch/arm64/boot/dts/qcom/sm8150-v2.dtb
++
++# Whether to include a DTB Overlay. Use 0 (no) or 1.
++# GKI devices should set this to 0
++KERNEL_IMAGE_WITH_DTB_OVERLAY = 1
++
++# Path to the DTB overlay.
++# If you leave this undefined, an attempt to find it automatically
++# will be made.
++KERNEL_IMAGE_DTB_OVERLAY = arch/arm64/boot/dts/qcom/vayu-sm8150-overlay.dtbo
++
++# Whether to include the DTB Overlay into the kernel image
++# Use 0 (no, default) or 1.
++# dtbo.img will always be shipped in the linux-bootimage- package.
++# GKI devices should set this to 0
++KERNEL_IMAGE_WITH_DTB_OVERLAY_IN_KERNEL = 0
++
++# Path to a specifc configuration file for mkdtboimg.
++# The default is to leave it undefined.
++# KERNEL_IMAGE_DTB_OVERLAY_CONFIGURATION = debian/custom_dtbo_config.cfg
++
++# Path to the DTB directory. Only define if KERNEL_IMAGE_DTB_OVERLAY_CONFIGURATION
++# is defined too.
++# KERNEL_IMAGE_DTB_OVERLAY_DTB_DIRECTORY = arch/arm64/boot/dts/qcom
++
++# Path to the prebuilt DT image. should only be defined on header version 1 and below.
++# mostly used on samsung devices. default is to leave it undefined
++# KERNEL_PREBUILT_DT = debian/dt.img
++
++# Various other settings that will be passed straight to mkbootimg
++# GKI devices can leave BASE_OFFSET, KERNEL_OFFSET, INITRAMFS_OFFSET, SECOND_OFFSET and TAGS_OFFSET empty
++KERNEL_BOOTIMAGE_PAGE_SIZE = 4096
++KERNEL_BOOTIMAGE_BASE_OFFSET = 0x00000000
++KERNEL_BOOTIMAGE_KERNEL_OFFSET = 0x00008000
++KERNEL_BOOTIMAGE_INITRAMFS_OFFSET = 0x01000000
++KERNEL_BOOTIMAGE_SECONDIMAGE_OFFSET = 0x00f00000
++KERNEL_BOOTIMAGE_TAGS_OFFSET = 0x00000100
++
++# Specify boot image security patch level if needed
++KERNEL_BOOTIMAGE_PATCH_LEVEL = 2021-10-01
++
++# Specify boot image OS version if needed
++# KERNEL_BOOTIMAGE_OS_VERSION = 12.0.0
++
++# Required for header version 2, ignore otherwise
++# GKI devices should leave this offset empty
++KERNEL_BOOTIMAGE_DTB_OFFSET = 0x0f00000
++
++# Kernel bootimage version. Defaults to 0 (legacy header).
++# As a rule of thumb:
++# Devices launched with Android 8 and lower: version 0
++# Devices launched with Android 9: version 1
++# Devices launched with Android 10: version 2
++# Devices launched with Android 11: version 2 or 3 (GKI)
++# Devices launched with Android 12: version 3 (GKI) or 4 (GKI)
++# Devices launched with Android 13: version 3 (GKI) or 4 (GKI)
++KERNEL_BOOTIMAGE_VERSION = 2
++
++# Kernel initramfs compression. Defaults to gzip.
++# All non-gki devices need a gzip (gz) initramfs
++# For devices launched with a GKI kernel it can be either gzip (gz) or lz4 (lz4)
++KERNEL_INITRAMFS_COMPRESSION = gz
++
++########################################################################
++# Android verified boot
++########################################################################
++
++# Whether to build a flashable vbmeta.img. Please note that currently
++# only empty vbmeta images (disabling verified boot) can be generated.
++# Use 0 (no) or 1 (default).
++DEVICE_VBMETA_REQUIRED = 1
++
++# Samsung devices require a special flag. Enable the following if your
++# device is a Samsung device that requires flag 0 to be present
++# Use 0 (no, default) or 1.
++DEVICE_VBMETA_IS_SAMSUNG = 0
++
++########################################################################
++# Automatic flashing on package upgrades
++########################################################################
++
++# Whether to enable kernel upgrades on package upgrades. Use 0 (no) or 1.
++FLASH_ENABLED = 1
++
++# If your device is treble-ized, but aonly, you should set the following to
++# 1 (yes).
++FLASH_IS_AONLY = 1
++
++# `flash-bootimage` defaults are enough for most recent devices, but legacy
++# devices won't work out of the box.
++# If you set the following to 1, this package will set `flash-bootimage`'s
++# DEVICE_IS_AB and BOOTIMAGE_SLOT_A accordingly, thus enabling flashing
++# on older devices.
++#
++# Do not enable if you don't know what you're doing
++FLASH_IS_LEGACY_DEVICE = 0
++
++# On some exynos devices partition names are capitalized (boot is BOOT and so on)
++# This flag makes the kernel to get flashed to the correct partition on updates.
++FLASH_IS_EXYNOS = 0
++
++# On some devices flashing userdata.img via fastboot fails and telnet should
++# be used instead. Set to 1 for telnet and 0 for fastboot
++FLASH_USE_TELNET = 0
++
++# Device manufacturer. This must match the `ro.product.vendor.manufacturer`
++# Android property. If you don't want to specify this, leave it undefined,
++# FLASH_INFO_CPU will be checked instead.
++FLASH_INFO_MANUFACTURER = Xiaomi
++
++# Device model. This must match the `ro.product.vendor.model`
++# On Xiaomi vayu there are different vendor images (miui 1lineage with diferent ro.ptoduct.vendor.model,
++# since the value configured is `ro.product.vendor.device`. A patch for flash-bootimage script
++# is also included in the droidian adaptation package
++# Android property. If you don't want to specify this, leave it undefined,
++# FLASH_INFO_CPU will be checked instead.
++FLASH_INFO_MODEL = vayu
++#FLASH_INFO_MODEL = M2102J20SG
++#FLASH_INFO_MODEL = POCO X3 Pro
++
++# Device CPU. This will be grepped against /proc/cpuinfo to check if
++# we're running on the specific device. Note this is a last-resort
++# method, specifying FLASH_INFO_MANUFACTURER and FLASH_INFO_MODEL is
++# recommended.
++# FLASH_INFO_CPU = Qualcomm Technologies, Inc SM8150
++
++# Space-separated list of supported device ids as reported by fastboot
++# F#LASH_INFO_DEVICE_IDS = sm8151 2a03db75
++
++########################################################################
++# Kernel build settings
++########################################################################
++
++# Whether to cross-build. Use 0 (no) or 1.
++BUILD_CROSS = 1
++
++# (Cross-build only) The build triplet to use. You'll probably want to
++# use aarch64-linux-android- if building Android kernels.
++# might need to use aarch64-linux-gnu- with newer kernels such as GKI
++BUILD_TRIPLET = aarch64-linux-android-
++
++# (Cross-build only) The build triplet to use with clang. You'll probably
++# want to use aarch64-linux-gnu- here.
++BUILD_CLANG_TRIPLET = aarch64-linux-gnu-
++
++# The compiler to use. Recent Android kernels are built with clang.
++BUILD_CC = clang
++
++# Use llvm instead of gcc. Recent Android kernels (past android 12) need llvm.
++BUILD_LLVM = 1
++
++# Extra paths to prepend to the PATH variable. You'll probably want
++# to specify the clang path here (the default).
++BUILD_PATH = /usr/lib/llvm-android-10.0-r370808/bin
++
++# Extra packages to add to the Build-Depends section. Mainline builds
++# can have this section empty, unless cross-building.
++# The default is enough to install the Android toolchain, including clang.
++DEB_TOOLCHAIN = vim, linux-packaging-snippets, linux-initramfs-halium-generic:arm64, binutils-aarch64-linux-gnu, clang-android-10.0-r370808, gcc-4.9-aarch64-linux-android, g++-4.9-aarch64-linux-android, libgcc-4.9-dev-aarch64-linux-android-cross
++
++# Where we're building on
++DEB_BUILD_ON = amd64
++
++# Where we're going to run this kernel on
++DEB_BUILD_FOR = arm64
++
++# Target kernel architecture
++KERNEL_ARCH = arm64
++
++# Kernel target to build
++KERNEL_BUILD_TARGET = Image.gz
+diff --git a/debian/rules b/debian/rules
+new file mode 100755
+index 000000000000..224ef2f3413e
+--- /dev/null
++++ b/debian/rules
+@@ -0,0 +1,6 @@
++#!/usr/bin/make -f
++
++include /usr/share/linux-packaging-snippets/kernel-snippet.mk
++
++%:
++	dh $@
+diff --git a/debian/source/format b/debian/source/format
+new file mode 100644
+index 000000000000..89ae9db8f88b
+--- /dev/null
++++ b/debian/source/format
+@@ -0,0 +1 @@
++3.0 (native)
+diff --git a/droidian/common_fragments/debug.config b/droidian/common_fragments/debug.config
+new file mode 100644
+index 000000000000..99344b0a1ba3
+--- /dev/null
++++ b/droidian/common_fragments/debug.config
+@@ -0,0 +1,5 @@
++# pstore
++CONFIG_PSTORE=y
++CONFIG_PSTORE_CONSOLE=y
++CONFIG_PSTORE_RAM=y
++CONFIG_PSTORE_RAM_ANNOTATION_APPEND=y
+diff --git a/droidian/common_fragments/droidian.config b/droidian/common_fragments/droidian.config
+new file mode 100644
+index 000000000000..d14e2271bf9f
+--- /dev/null
++++ b/droidian/common_fragments/droidian.config
+@@ -0,0 +1,29 @@
++# Droidian requirements
++CONFIG_ANDROID_PARANOID_NETWORK=n
++CONFIG_USER_NS=y
++CONFIG_ANDROID_BINDERFS=n
++# CONFIG_ANDROID_BINDER_DEVICES is defined below in the Waydroid section
++
++# Waydroid
++CONFIG_SW_SYNC_USER=y
++CONFIG_NET_CLS_CGROUP=y
++CONFIG_CGROUP_NET_CLASSID=y
++CONFIG_VETH=y
++CONFIG_NETFILTER_XT_TARGET_CHECKSUM=y
++CONFIG_ANDROID_BINDER_DEVICES="binder,hwbinder,vndbinder,anbox-binder,anbox-hwbinder,anbox-vndbinder"
++
++# RNDIS usb networking
++CONFIG_USB_CONFIGFS_RNDIS=y
++CONFIG_USB_CONFIGFS_RMNET_BAM=y
++CONFIG_USB_CONFIGFS_MASS_STORAGE=y
++
++# Bluetooth
++CONFIG_BT_HCIVHCI=y
++CONFIG_BT_HIDP=y
++CONFIG_BT_RFCOMM=y
++
++# Crypto
++CONFIG_CRYPTO_USER_API_SKCIPHER=y
++
++# Security
++CONFIG_SECURITY_YAMA=y
+diff --git a/droidian/common_fragments/halium.config b/droidian/common_fragments/halium.config
+new file mode 100644
+index 000000000000..51f1712beeea
+--- /dev/null
++++ b/droidian/common_fragments/halium.config
+@@ -0,0 +1,50 @@
++# Halium modifications
++
++# Halium errors
++CONFIG_VT=y
++CONFIG_IP_NF_MATCH_RPFILTER=y
++CONFIG_EPOLL=y
++CONFIG_PROC_FS=y
++CONFIG_DUMMY=n
++CONFIG_INOTIFY_USER=y
++CONFIG_RD_GZIP=y
++CONFIG_TIMERFD=y
++CONFIG_DEVTMPFS_MOUNT=y
++CONFIG_SIGNALFD=y
++CONFIG_QUOTACTL=y
++CONFIG_SYSVIPC=y
++CONFIG_DEVTMPFS=y
++CONFIG_FHANDLE=y
++CONFIG_NLS_UTF8=y
++CONFIG_SYSFS=y
++CONFIG_NETFILTER_XT_MATCH_MULTIPORT=y
++CONFIG_COMPAT_VDSO=n
++CONFIG_SECURITY_SELINUX_BOOTPARAM=y
++
++# Halium warnings
++CONFIG_WATCHDOG_NOWAYOUT=n # Enable once there is dsme or an alternative
++CONFIG_NET_NS=y
++CONFIG_NET_CLS_CGROUP=y
++CONFIG_PID_NS=y
++CONFIG_UDF_FS=y
++CONFIG_NETFILTER_XT_MATCH_SCTP=y
++CONFIG_NETFILTER_XT_CONNMARK=y
++CONFIG_NETFILTER_XT_MATCH_RECENT=y
++CONFIG_NETFILTER_XT_MATCH_ESP=y
++CONFIG_NETFILTER_XT_MATCH_DCCP=y
++CONFIG_NETFILTER_XT_MATCH_NFACCT=y
++CONFIG_UTS_NS=y
++CONFIG_TMPFS_XATTR=y
++CONFIG_BLK_CGROUP=y
++CONFIG_FANOTIFY=y
++CONFIG_CGROUP_PERF=y
++CONFIG_CPUSETS=y
++CONFIG_LBDAF=y
++CONFIG_CGROUP_DEVICE=y
++CONFIG_IPC_NS=y
++CONFIG_NETPRIO_CGROUP=y
++CONFIG_MEMCG_KMEM=y
++CONFIG_RTC_DRV_CMOS=y
++# stune is needed by droidian-perf.service
++CONFIG_CGROUP_SCHEDTUNE=y
++CONFIG_SCHED_TUNE=y
+diff --git a/droidian/vayu-ext.config b/droidian/vayu-ext.config
+new file mode 100644
+index 000000000000..5e687f38f103
+--- /dev/null
++++ b/droidian/vayu-ext.config
+@@ -0,0 +1,30 @@
++# Ensure overlay gets built
++CONFIG_BUILD_ARM64_DT_OVERLAY=y
++
++# WLAN
++CONFIG_QCA_CLD_WLAN=y
++
++# CIFS
++CONFIG_CIFS=y
++
++# OTG
++CONFIG_USB_OTG=y
++
++# Docker stuff, should be investigated whether
++# this makes sense to move to a fragment
++CONFIG_BRIDGE_NETFILTER=y
++CONFIG_NETFILTER_XT_MATCH_ADDRTYPE=y
++CONFIG_NETFILTER_XT_MATCH_IPVS=y
++CONFIG_POSIX_MQUEUE=y
++CONFIG_CGROUP_PIDS=y
++CONFIG_BLK_DEV_THROTTLING=y
++CONFIG_CGROUP_HUGETLB=y
++CONFIG_CGROUP_NET_PRIO=y
++CONFIG_CFS_BANDWIDTH=y
++CONFIG_IP_VS=m
++CONFIG_IP_VS_NFCT=y
++CONFIG_IP_VS_PROTO_TCP=y
++CONFIG_IP_VS_PROTO_UDP=y
++CONFIG_IP_VS_RR=m
++CONFIG_VXLAN=m
++CONFIG_BRIDGE_VLAN_FILTERING=y
+diff --git a/droidian/vayu-sample.config b/droidian/vayu-sample.config
+new file mode 100644
+index 000000000000..bb407d90621a
+--- /dev/null
++++ b/droidian/vayu-sample.config
+@@ -0,0 +1,30 @@
++# Ensure overlay gets built
++CONFIG_BUILD_ARM64_DT_OVERLAY=y
++
++# WLAN
++CONFIG_QCA_CLD_WLAN=y
++
++# CIFS
++CONFIG_CIFS=y
++
++# OTG
++CONFIG_USB_OTG=y
++
++# Docker stuff, should be investigated whether
++# this makes sense to move to a fragment
++CONFIG_BRIDGE_NETFILTER=y
++CONFIG_NETFILTER_XT_MATCH_ADDRTYPE=y
++CONFIG_NETFILTER_XT_MATCH_IPVS=y
++CONFIG_POSIX_MQUEUE=y
++CONFIG_CGROUP_PIDS=y
++CONFIG_BLK_DEV_THROTTLING=y
++CONFIG_CGROUP_HUGETLB=y
++CONFIG_CGROUP_NET_PRIO=y
++CONFIG_CFS_BANDWIDTH=y
++CONFIG_IP_VS=m
++CONFIG_IP_VS_NFCT=m
++CONFIG_IP_VS_PROTO_TCP=m
++CONFIG_IP_VS_PROTO_UDP=m
++CONFIG_IP_VS_RR=m
++CONFIG_VXLAN=m
++CONFIG_BRIDGE_VLAN_FILTERING=y
+diff --git a/droidian/vayu.config b/droidian/vayu.config
+new file mode 100644
+index 000000000000..eda6ce029d06
+--- /dev/null
++++ b/droidian/vayu.config
+@@ -0,0 +1,19 @@
++# Ensure overlay gets built
++CONFIG_BUILD_ARM64_DT_OVERLAY=y
++
++# WLAN
++CONFIG_QCA_CLD_WLAN=y
++
++# OTG
++CONFIG_USB_OTG=y
++
++## kernel image compression
++# CONFIG_BUILD_ARM64_UNCOMPRESSED_KERNEL is not set
++CONFIG_BUILD_ARM64_KERNEL_COMPRESSION_GZIP=y
++CONFIG_KERNEL_GZIP=y
++CONFIG_HAVE_KERNEL_GZIP=y
++# CONFIG_HAVE_KERNEL_LZ4 is not set
++# CONFIG_KERNEL_LZ4 is not set
++
++# CIFS
++CONFIG_CIFS=y
+-- 
+2.39.2
+

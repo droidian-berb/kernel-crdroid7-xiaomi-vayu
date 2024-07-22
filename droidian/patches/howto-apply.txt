@@ -1,0 +1,11 @@
+## Patch the needes fixes using:
+git am [--whitespace=fix] droidian/fixes/kernel/Patch-name.patch
+git am [--whitespace=fix] droidian/fixes/packaging/Patch-name.patch
+
+
+## Errors
+# white spaces
+- vim -c 'set list' patch_file ## set vim to show whitespaces
+- grep -n " $" patch_name ## Search for white spaces
+- grep -n "^$" patch_nane ## Search for white lines
+

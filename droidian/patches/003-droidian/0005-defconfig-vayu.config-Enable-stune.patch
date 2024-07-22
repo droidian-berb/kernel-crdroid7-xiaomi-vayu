@@ -1,0 +1,45 @@
+From 989ade5f6b8f22d53d7cae1360faaf965309bcf3 Mon Sep 17 00:00:00 2001
+From: vacuumbeef <aashcap@disroot.org>
+Date: Mon, 22 Jul 2024 14:13:02 +0200
+Subject: [PATCH] (defconfig) vayu.config: Enable stune
+
+---
+ droidian/common_fragments/halium.config | 5 -----
+ droidian/vayu.config                    | 5 +++++
+ 2 files changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/droidian/common_fragments/halium.config b/droidian/common_fragments/halium.config
+index c5a037786dff..1ce7734102ab 100644
+--- a/droidian/common_fragments/halium.config
++++ b/droidian/common_fragments/halium.config
+@@ -46,11 +46,6 @@ CONFIG_NETPRIO_CGROUP=y
+ CONFIG_MEMCG_KMEM=y
+ CONFIG_RTC_DRV_CMOS=y
+ 
+-## From vacummbeef)
+-# stune is needed by droidian-perf.service
+-CONFIG_CGROUP_SCHEDTUNE=y
+-CONFIG_SCHED_TUNE=y
+-
+ ## REQUIREDummayu crdroid by mer halium tool
+ CONFIG_SYSVIPC_SYSCTL=y
+ CONFIG_SYSVIPC_COMPAT=y
+diff --git a/droidian/vayu.config b/droidian/vayu.config
+index c14f3fe375c7..3a45b9ed517c 100644
+--- a/droidian/vayu.config
++++ b/droidian/vayu.config
+@@ -7,6 +7,11 @@ CONFIG_QCA_CLD_WLAN=y
+ # OTG
+ CONFIG_USB_OTG=y
+ 
++## From vacummbeef)
++# stune is needed by droidian-perf.service
++CONFIG_CGROUP_SCHEDTUNE=y
++CONFIG_SCHED_TUNE=y
++
+ ## Fix error --thinlto-cache-dir=.thinlto-cache unknown option
+ # CONFIG_LTO is not set
+ # CONFIG_ARCH_SUPPORTS_LTO_CLANG is not set
+-- 
+2.39.2
+
