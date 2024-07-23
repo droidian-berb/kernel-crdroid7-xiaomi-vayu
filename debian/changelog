@@ -1,4 +1,13 @@
-linux-android-xiaomi-vayu (4.14.290+droidian1+git20240722190211.4988757.droidian) trixie; urgency=medium
+linux-android-xiaomi-vayu (4.14.290+droidian2+git20240722231209.13f2e81.droidian) trixie; urgency=medium
+
+  * (defconfig) halium.config: Enable WireGuard debug
+  * Remove current Wireguard support from kernel tree as pre upgrade req
+  * net: Import WireGuard into kernel tree
+  * Update debian changelog
+
+ -- berbascum <berbascum@ticv.cat>  Tue, 23 Jul 2024 01:12:09 +0200
+
+linux-android-xiaomi-vayu (4.14.290+droidian1) trixie; urgency=medium
 
   [ berbascum ]
   * Update .gitignore: Enable follow for droidian patches
