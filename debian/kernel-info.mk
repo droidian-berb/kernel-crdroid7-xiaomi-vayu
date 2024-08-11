@@ -188,7 +188,7 @@ BUILD_CROSS = 1
 # (Cross-build only) The build triplet to use. You'll probably want to
 # use aarch64-linux-android- if building Android kernels.
 # might need to use aarch64-linux-gnu- with newer kernels such as GKI
-BUILD_TRIPLET = aarch64-linux-gnu-
+BUILD_TRIPLET = aarch64-linux-android-
 
 # (Cross-build only) The build triplet to use with clang. You'll probably
 # want to use aarch64-linux-gnu- here.
@@ -202,12 +202,19 @@ BUILD_LLVM = 1
 
 # Extra paths to prepend to the PATH variable. You'll probably want
 # to specify the clang path here (the default).
-BUILD_PATH = /usr/lib/llvm-android-14.0-r450784d/bin
+# Paths for lineage kernel build
+BUILD_PATH = /opt/build-tools/linux-x86/bin:/opt/android_prebuilts_gcc_linux-x86_aarch64_aarch64-linux-android-4.9/aarch64-linux-android/bin:/opt/android_prebuilts_gcc_linux-x86_aarch64_aarch64-linux-android-4.9/bin:/usr/lib/llvm-android-12.0-r416183b/bin:/opt/android_prebuilts_tools-lineage/linux-x86/bin
+
+# 10 r370808
+# 12 r416183b
+# 14 r450784d
 
 # Extra packages to add to the Build-Depends section. Mainline builds
 # can have this section empty, unless cross-building.
+
 # The default is enough to install the Android toolchain, including clang.
-DEB_TOOLCHAIN = vim, linux-packaging-snippets, linux-initramfs-halium-generic:arm64, binutils-aarch64-linux-gnu, clang-android-14.0-r450784d, gcc-4.9-aarch64-linux-android, g++-4.9-aarch64-linux-android, libgcc-4.9-dev-aarch64-linux-android-cross
+DEB_TOOLCHAIN = linux-initramfs-halium-generic:arm64, binutils-aarch64-linux-gnu, clang-android-12.0-r416183b
+#DEB_TOOLCHAIN = vim, linux-packaging-snippets, linux-initramfs-halium-generic:arm64, binutils-aarch64-linux-gnu, clang-android-10.0-r370808, gcc-4.9-aarch64-linux-android, g++-4.9-aarch64-linux-android, libgcc-4.9-dev-aarch64-linux-android-cross
 
 # Where we're building on
 DEB_BUILD_ON = amd64
