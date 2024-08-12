@@ -1,4 +1,20 @@
-linux-android-xiaomi-vayu (4.14.290+droidian2+git20240722231209.13f2e81.droidian) trixie; urgency=medium
+linux-android-xiaomi-vayu (4.14.290+testing3+git20240812000249.2c2758b.crdroid7) crdroid7; urgency=medium
+
+  * Update debian changelog
+  * Update debian control
+  * (defconfig) halium: Disable KVM because the kbuild crashes
+  * Add kernel-info sample using lineageos build tools
+  * Use lineageos 18.1 build tools
+  * Add some extra testing build scripts
+  * Enable KVM
+  * Enable CONF_SCHED_AUTOGROUP
+  * Revert Fix LTO since is solved by LineageosOS gcc
+  * (defconfig) vayu fragment: enable CONFIG_SND_SEQUENCER
+  * (defconfig) halium: add ne halium confis
+
+ -- berbascum <berbascum@ticv.cat>  Mon, 12 Aug 2024 02:02:49 +0200
+
+linux-android-xiaomi-vayu (4.14.290+droidian2) trixie; urgency=medium
 
   * (defconfig) halium.config: Enable WireGuard debug
   * Remove current Wireguard support from kernel tree as pre upgrade req
