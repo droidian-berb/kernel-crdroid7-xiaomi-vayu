@@ -1,0 +1,50 @@
+From 758b8f1101d39bb22ba7b8794c74acb1e19d1823 Mon Sep 17 00:00:00 2001
+From: TheKit <nekit1000@gmail.com>
+Date: Sun, 21 Feb 2021 15:14:19 +0200
+Subject: [PATCH] (halium) binder: do not use a separate queue for async oneway
+ transactions
+
+At some point (hours or days after start) ofono gets stuck and stops
+processing incoming async transactions. It seems to be caused by BC_FREE_BUFFER
+command not getting issued under rare circumstances. The way async_todo queue
+is handled in binder kernel driver, next transaction is dequeued only after
+BC_FREE_BUFFER command is processed.
+
+This commits attempts to workaround missing the next async transactions even if
+the buffer for a particular one is leaked by always adding work to todo queue
+instead of handling them separately via async_todo.
+
+Change-Id: I4bfb49787257fa579c2fd2ae498ced566ff35cb5
+---
+ drivers/android/binder.c | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/android/binder.c b/drivers/android/binder.c
+index 0ee6b585bad5..3534f1125314 100644
+--- a/drivers/android/binder.c
++++ b/drivers/android/binder.c
+@@ -2864,7 +2864,10 @@ static bool binder_proc_transaction(struct binder_transaction *t,
+ 	if (oneway) {
+ 		BUG_ON(thread);
+ 		if (node->has_async_transaction) {
+-			pending_async = true;
++			// Halium: possible libgbinder bug workaround
++			/*pending_async = true;*/
++			pr_info("%d has pending async transaction, but still adding a new transaction to todo list (gbinder bug workaround)\n",
++					proc->pid);
+ 		} else {
+ 			node->has_async_transaction = true;
+ 		}
+@@ -3812,7 +3815,8 @@ static int binder_thread_write(struct binder_proc *proc,
+ 
+ 				buf_node = buffer->target_node;
+ 				binder_node_inner_lock(buf_node);
+-				BUG_ON(!buf_node->has_async_transaction);
++				// Halium: possible libgbinder bug workaround
++				/*BUG_ON(!buf_node->has_async_transaction);*/
+ 				BUG_ON(buf_node->proc != proc);
+ 				w = binder_dequeue_work_head_ilocked(
+ 						&buf_node->async_todo);
+-- 
+2.39.2
+

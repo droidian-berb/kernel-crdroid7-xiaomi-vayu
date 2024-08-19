@@ -1,0 +1,38 @@
+From f41fc7ad93e811cea46ee3a7e8ba58f2edfaadb9 Mon Sep 17 00:00:00 2001
+From: Asriel Dreemurr <asriel.danctnix@gmail.com>
+Date: Wed, 5 May 2021 17:32:40 +0700
+Subject: [PATCH] (halium) binder: Use gbinder workaround only for hwbinder
+ context
+
+Change-Id: Ie4b25d9aa16462e16c33479347fa4553cf2f9fed
+---
+ drivers/android/binder.c | 13 +++++++++----
+ 1 file changed, 9 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/android/binder.c b/drivers/android/binder.c
+index 3534f1125314..dc2d9d93580d 100644
+--- a/drivers/android/binder.c
++++ b/drivers/android/binder.c
+@@ -2864,10 +2864,15 @@ static bool binder_proc_transaction(struct binder_transaction *t,
+ 	if (oneway) {
+ 		BUG_ON(thread);
+ 		if (node->has_async_transaction) {
+-			// Halium: possible libgbinder bug workaround
+-			/*pending_async = true;*/
+-			pr_info("%d has pending async transaction, but still adding a new transaction to todo list (gbinder bug workaround)\n",
+-					proc->pid);
++			if (!strcmp(proc->context->name, "hwbinder")) {
++				// Halium: possible libgbinder bug workaround
++				pr_info("%d has pending async transaction, but still adding a new transaction to todo list (gbinder bug workaround)\n",
++						proc->pid);
++			} else {
++				pr_info("%d not applying gbinder workaround, context %s is not hwbinder\n",
++						proc->pid, proc->context->name);
++				pending_async = true;
++			}
+ 		} else {
+ 			node->has_async_transaction = true;
+ 		}
+-- 
+2.39.2
+

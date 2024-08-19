@@ -1,0 +1,80 @@
+From f69ed133e07a65936312d6383ecd5c0a72481743 Mon Sep 17 00:00:00 2001
+From: berbascum <berbascum@ticv.cat>
+Date: Mon, 22 Jul 2024 00:46:22 +0200
+Subject: [PATCH] (build) Fix: error wrong permissions in linux image sections
+
+ WARNING: aarch64-linux-gnu-ld: warning:
+ .tmp_vmlinux1 has a LOAD segment with RWX permissions.
+
+ This warning is caused by missing permission definitions
+ for some linux image sections
+
+---
+ arch/arm64/kernel/vmlinux.lds.S | 19 ++++++++++++++-----
+ 1 file changed, 14 insertions(+), 5 deletions(-)
+
+diff --git a/arch/arm64/kernel/vmlinux.lds.S b/arch/arm64/kernel/vmlinux.lds.S
+index 0a9564d40565..451978e1eac2 100644
+--- a/arch/arm64/kernel/vmlinux.lds.S
++++ b/arch/arm64/kernel/vmlinux.lds.S
+@@ -92,6 +92,13 @@ PECOFF_FILE_ALIGNMENT = 0x200;
+ #define PECOFF_EDATA_PADDING
+ #endif
+ 
++PHDRS {
++  text PT_LOAD FLAGS(5);  /* Read + Execute */
++  data PT_LOAD FLAGS(6);  /* Read + Write */
++  init PT_LOAD FLAGS(6);  /* Read + Write */
++  bss PT_LOAD FLAGS(6);   /* Read + Write */
++}
++
+ SECTIONS
+ {
+ 	/*
+@@ -116,7 +123,7 @@ SECTIONS
+ 	.head.text : {
+ 		_text = .;
+ 		HEAD_TEXT
+-	}
++	} :text
+ 	.text : {			/* Real text segment		*/
+ 		_stext = .;		/* Text and read-only data	*/
+ 			__exception_text_start = .;
+@@ -138,7 +145,9 @@ SECTIONS
+ 			*(.gnu.warning)
+ 		. = ALIGN(16);
+ 		*(.got)			/* Global offset table		*/
+-	}
++	} :text
++
++        .plt : { *(.plt) } :text
+ 
+ 	. = ALIGN(SEGMENT_ALIGN);
+ 	_etext = .;			/* End of text section */
+@@ -178,12 +187,12 @@ SECTIONS
+ 		SECURITY_INITCALL
+ 		INIT_RAM_FS
+ 		*(.init.rodata.* .init.bss)	/* from the EFI stub */
+-	}
++	} :init
+ 	.exit.data : {
+ 		ARM_EXIT_KEEP(EXIT_DATA)
+ 	}
+ 
+-	PERCPU_SECTION(L1_CACHE_BYTES)
++	PERCPU_SECTION(L1_CACHE_BYTES) :data
+ 
+ 	.rela.dyn : ALIGN(8) {
+ 		*(.rela .rela*)
+@@ -207,7 +216,7 @@ SECTIONS
+ 
+ 	_data = .;
+ 	_sdata = .;
+-	RW_DATA_SECTION(L1_CACHE_BYTES, PAGE_SIZE, THREAD_ALIGN)
++	RW_DATA_SECTION(L1_CACHE_BYTES, PAGE_SIZE, THREAD_ALIGN) :data
+ 
+ 	/*
+ 	 * Data written with the MMU off but read with the MMU on requires
+-- 
+2.39.2
+

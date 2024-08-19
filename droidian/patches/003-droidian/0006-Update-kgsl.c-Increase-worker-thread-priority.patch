@@ -1,0 +1,25 @@
+From 48c98cf770032d1e4282c5bbe8ae3a2216af6171 Mon Sep 17 00:00:00 2001
+From: vacuumbeef <aashcap@disroot.org>
+Date: Sun, 8 Oct 2023 12:51:45 +0000
+Subject: [PATCH] Update kgsl.c: Increase worker thread priority
+
+---
+ drivers/gpu/msm/kgsl.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/gpu/msm/kgsl.c b/drivers/gpu/msm/kgsl.c
+index 950a5644db5b..d8cfcaf2fdfc 100644
+--- a/drivers/gpu/msm/kgsl.c
++++ b/drivers/gpu/msm/kgsl.c
+@@ -5167,7 +5167,7 @@ static void kgsl_core_exit(void)
+ static int __init kgsl_core_init(void)
+ {
+ 	int result = 0;
+-	struct sched_param param = { .sched_priority = 2 };
++	struct sched_param param = { .sched_priority = 16 };
+ 
+ 	place_marker("M - DRIVER KGSL Init");
+ 
+-- 
+2.39.2
+

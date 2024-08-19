@@ -1,0 +1,32 @@
+From c81b4cba278ad72961bfa4a03263cda166e1b358 Mon Sep 17 00:00:00 2001
+From: berbascum <berbascum@ticv.cat>
+Date: Mon, 22 Jul 2024 14:01:50 +0200
+Subject: [PATCH] Move Fix error --thinlto-cache-dir=.thinlto-cache unknown
+ option to droidian/vayu.config
+
+---
+ droidian/vayu.config | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/droidian/vayu.config b/droidian/vayu.config
+index eda6ce029d06..c14f3fe375c7 100644
+--- a/droidian/vayu.config
++++ b/droidian/vayu.config
+@@ -7,6 +7,14 @@ CONFIG_QCA_CLD_WLAN=y
+ # OTG
+ CONFIG_USB_OTG=y
+ 
++## Fix error --thinlto-cache-dir=.thinlto-cache unknown option
++# CONFIG_LTO is not set
++# CONFIG_ARCH_SUPPORTS_LTO_CLANG is not set
++# CONFIG_ARCH_SUPPORTS_THINLTO is not set
++# CONFIG_THINLTO is not set
++# CONFIG_LTO_NONE is not set
++# CONFIG_LTO_CLANG is not set
++
+ ## kernel image compression
+ # CONFIG_BUILD_ARM64_UNCOMPRESSED_KERNEL is not set
+ CONFIG_BUILD_ARM64_KERNEL_COMPRESSION_GZIP=y
+-- 
+2.39.2
+

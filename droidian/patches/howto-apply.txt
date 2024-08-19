@@ -1,0 +1,20 @@
+## Patch the needes fixes using:
+git am [--whitespace=fix] droidian/fixes/kernel/Patch-name.patch
+git am [--whitespace=fix] droidian/fixes/packaging/Patch-name.patch
+
+
+## Errors
+# white spaces by git am patch_name
+The white space warnings may show inexact line numbers
+Can be checked by git apply instead
+git apply --check --whitespace=error patch_name
+## NOTE: For every white line (normally a line with only a + char),
+## The final line number from the file diff header should be decreased by 1
+## Sambple: @@ -0,0 +1,467 @@  # 467 is last file line, so decrease it by 1
+
+# Some methods to find white spaces
+- vim -c 'set list' patch_file ## set vim to show whitespaces
+- grep -n " $" patch_name ## Search for white spaces
+- grep -n "^$" patch_nane ## Search for white lines
+
+

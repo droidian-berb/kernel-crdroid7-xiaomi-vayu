@@ -1,0 +1,27 @@
+From 63a0d6542876542c3de4761356fe7f83a71c27be Mon Sep 17 00:00:00 2001
+From: NotKit <>
+Date: Sat, 23 Oct 2021 19:59:03 -0400
+Subject: [PATCH] (halium) binder: ignore txn_security_ctx flag
+
+Needed for hwservicemanager to work with AppArmor enabled in kernel
+till better workaround is found.
+---
+ drivers/android/binder.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/android/binder.c b/drivers/android/binder.c
+index 15ee12121145..26de5d5b4119 100644
+--- a/drivers/android/binder.c
++++ b/drivers/android/binder.c
+@@ -1362,7 +1362,7 @@ static struct binder_node *binder_init_node_ilocked(
+ 	node->min_priority = to_kernel_prio(node->sched_policy, priority);
+ 	node->accept_fds = !!(flags & FLAT_BINDER_FLAG_ACCEPTS_FDS);
+ 	node->inherit_rt = !!(flags & FLAT_BINDER_FLAG_INHERIT_RT);
+-	node->txn_security_ctx = !!(flags & FLAT_BINDER_FLAG_TXN_SECURITY_CTX);
++	node->txn_security_ctx = 0; /*!!(flags & FLAT_BINDER_FLAG_TXN_SECURITY_CTX);*/
+ 	spin_lock_init(&node->lock);
+ 	INIT_LIST_HEAD(&node->work.entry);
+ 	INIT_LIST_HEAD(&node->async_todo);
+-- 
+2.39.2
+

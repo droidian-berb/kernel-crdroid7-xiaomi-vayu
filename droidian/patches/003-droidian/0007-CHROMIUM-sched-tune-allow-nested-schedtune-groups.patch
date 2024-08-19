@@ -1,0 +1,50 @@
+From 54db01ffaaccf5d8108ad841ccd4bad5adc00fa8 Mon Sep 17 00:00:00 2001
+From: vacuumbeef <aashcap@disroot.org>
+Date: Mon, 22 Jul 2024 14:48:02 +0200
+Subject: [PATCH]  CHROMIUM: sched: tune: allow nested schedtune groups
+
+Adapted to 4.14.290 by berbascum
+
+Let's remove restriction that schedtune groups can not be nested. Note
+that they are still completely independent even if they are nested, but
+at least we can build proper hierarchies now.
+
+We also extend maximum number of schedtune groups to 16 for now.
+
+CHROMIUM Note: Apparently the plan is to drop schedtune in favor of
+utilization clamping. Future kernel rebases should hopefully be able
+to drop this patch once utilization clamping is accepted upstream and
+we've moved to it. Check out the second bug in the BUG= field.
+---
+ kernel/sched/tune.c | 8 +-------
+ 1 file changed, 1 insertion(+), 7 deletions(-)
+
+diff --git a/kernel/sched/tune.c b/kernel/sched/tune.c
+index d3bc2a035447..2eae0813c034 100644
+--- a/kernel/sched/tune.c
++++ b/kernel/sched/tune.c
+@@ -105,7 +105,7 @@ root_schedtune = {
+  *    implementation especially for the computation of the per-CPU boost
+  *    value
+  */
+-#define BOOSTGROUPS_COUNT 7
++#define BOOSTGROUPS_COUNT 16
+ 
+ /* Array of configured boostgroups */
+ static struct schedtune *allocated_group[BOOSTGROUPS_COUNT] = {
+@@ -708,12 +708,6 @@ schedtune_css_alloc(struct cgroup_subsys_state *parent_css)
+ 	if (!parent_css)
+ 		return &root_schedtune.css;
+ 
+-	/* Allow only single level hierachies */
+-	if (parent_css != &root_schedtune.css) {
+-		pr_err("Nested SchedTune boosting groups not allowed\n");
+-		return ERR_PTR(-ENOMEM);
+-	}
+-
+ 	/* Allow only a limited number of boosting groups */
+ 	for (idx = 1; idx < BOOSTGROUPS_COUNT; ++idx)
+ 		if (!allocated_group[idx])
+-- 
+2.39.2
+

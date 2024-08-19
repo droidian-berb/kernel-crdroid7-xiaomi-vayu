@@ -1,0 +1,30 @@
+From fcfb37d7c7d5627104e01be405eb8daa1ddc8147 Mon Sep 17 00:00:00 2001
+From: Erfan Abdi <erfangplus@gmail.com>
+Date: Wed, 17 Jun 2020 23:27:15 +0430
+Subject: [PATCH 15/60] =?UTF-8?q?HACK:=20Set=20=E2=80=9CMains=E2=80=9D=20t?=
+ =?UTF-8?q?ype=20for=20BMS=20and=20Main?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Change-Id: I44dc3743c3a5126b171aa8db1c90b00b8bb13024
+---
+ drivers/power/supply/power_supply_sysfs.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/power/supply/power_supply_sysfs.c b/drivers/power/supply/power_supply_sysfs.c
+index f7880def50db..14bd1c1d5b23 100644
+--- a/drivers/power/supply/power_supply_sysfs.c
++++ b/drivers/power/supply/power_supply_sysfs.c
+@@ -45,7 +45,7 @@ static const char * const power_supply_type_text[] = {
+ 	"USB_DCP", "USB_CDP", "USB_ACA", "USB_C",
+ 	"USB_PD", "USB_PD_DRP", "BrickID",
+ 	"USB_HVDCP", "USB_HVDCP_3", "USB_HVDCP_3P5", "Wireless", "USB_FLOAT",
+-	"BMS", "Parallel", "Main", "Wipower", "USB_C_UFP", "USB_C_DFP",
++	"Mains", "Parallel", "Mains", "Wipower", "USB_C_UFP", "USB_C_DFP",
+ 	"Charge_Pump","ZIMI_CAR_POWER","Batt_Verify"
+ };
+ 
+-- 
+2.39.2
+
