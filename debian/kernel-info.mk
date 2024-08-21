@@ -8,10 +8,10 @@
 VARIANT = android
 
 # Kernel base version
-KERNEL_BASE_VERSION = 4.14-290
+KERNEL_BASE_VERSION = 4.14-0
 
 # The kernel cmdline to use
-KERNEL_BOOTIMAGE_CMDLINE = androidboot.hardware=qcom androidboot.console=ttyMSM0 androidboot.memcg=1 lpm_levels.sleep_disabled=1 video=vfb:640x400,bpp=32,memsize=3072000 msm_rtb.filter=0x237 service_locator.enable=1 swiotlb=2048 loop.max_part=7 androidboot.usbcontroller=a600000.dwc3 console=tty0 droidian.lvm.prefer
+KERNEL_BOOTIMAGE_CMDLINE = androidboot.hardware=qcom androidboot.console=ttyMSM0 androidboot.memcg=1 lpm_levels.sleep_disabled=1 video=vfb:640x400,bpp=32,memsize=3072000 msm_rtb.filter=0x237 service_locator.enable=1 swiotlb=2048 loop.max_part=7 androidboot.usbcontroller=a600000.dwc3 console=tty0 binder.global_pid_lookups=0 droidian.lvm.prefer
 
 # Slug for the device vendor. This is going to be used in the KERNELRELASE
 # and package names.
@@ -30,6 +30,19 @@ DEVICE_FULL_NAME = Xiaomi Pocophone X3 Pro
 # If unsure, keep this to 0.
 KERNEL_CONFIG_USE_FRAGMENTS = 1
 
+# Enable debug common_fragment
+# The common_fragments submodule showld be installed
+KERNEL_CONFIG_USE_DEBUG_COMMON_FRAGMENT = 0
+
+# Enable kernel config device extra fragments
+KERNEL_CONFIG_USE_EXTRA_FRAGMENTS = 1
+KERNEL_CONFIG_EXTRA_FRAGMENTS = vayu-halium.config
+#vayu-test.config
+
+# Enable kernel config device extra debug fragment
+# droidian/<device_model>-debug.config
+KERNEL_CONFIG_USE_DEBUG_EXTRA_FRAGMENT = 0
+
 # Whether to use diffconfig to generate the device-specific configuration.
 # If you enable this, you should set KERNEL_CONFIG_USE_FRAGMENTS to 1.
 # If unsure, keep this to 0.
@@ -40,7 +53,7 @@ KERNEL_CONFIG_USE_DIFFCONFIG = 0
 # KERNEL_PRODUCT_DIFFCONFIG = my_diffconfig
 
 # Defconfig to use
-KERNEL_DEFCONFIG = vayu_user_defconfig
+KERNEL_DEFCONFIG = vayu_lastworking_defconfig
 
 # Whether to include DTBs with the image. Use 0 (no) or 1.
 # GKI devices should set this to 0
@@ -74,7 +87,7 @@ KERNEL_IMAGE_WITH_DTB_OVERLAY_IN_KERNEL = 0
 # is defined too.
 # KERNEL_IMAGE_DTB_OVERLAY_DTB_DIRECTORY = arch/arm64/boot/dts/qcom
 
-# Path to the prebuilt DT image. should only be defined on header version 1 and below.
+# Path to the prebuilt DT image. should only be defined on header version 1 and below. 
 # mostly used on samsung devices. default is to leave it undefined
 # KERNEL_PREBUILT_DT = debian/dt.img
 
@@ -88,7 +101,7 @@ KERNEL_BOOTIMAGE_SECONDIMAGE_OFFSET = 0x00f00000
 KERNEL_BOOTIMAGE_TAGS_OFFSET = 0x00000100
 
 # Specify boot image security patch level if needed
-KERNEL_BOOTIMAGE_PATCH_LEVEL = 2021-10-01
+KERNEL_BOOTIMAGE_PATCH_LEVEL = 2022-01-01
 
 # Specify boot image OS version if needed
 # KERNEL_BOOTIMAGE_OS_VERSION = 12.0.0
@@ -202,8 +215,9 @@ BUILD_LLVM = 1
 
 # Extra paths to prepend to the PATH variable. You'll probably want
 # to specify the clang path here (the default).
-# Paths for lineage kernel build
-BUILD_PATH = /opt/build-tools/linux-x86/bin:/opt/android_prebuilts_gcc_linux-x86_aarch64_aarch64-linux-android-4.9/aarch64-linux-android/bin:/opt/android_prebuilts_gcc_linux-x86_aarch64_aarch64-linux-android-4.9/bin:/usr/lib/llvm-android-12.0-r416183b/bin:/opt/android_prebuilts_tools-lineage/linux-x86/bin
+#BUILD_PATH = /usr/lib/llvm-android-10.0-r370808/bin
+BUILD_PATH = /usr/lib/llvm-android-12.0-r416183b/bin
+#BUILD_PATH = /opt/android-platform-prebuilts-clang-host-linux-x86-31/clang-r383902/bin
 
 # 10 r370808
 # 12 r416183b
@@ -211,10 +225,9 @@ BUILD_PATH = /opt/build-tools/linux-x86/bin:/opt/android_prebuilts_gcc_linux-x86
 
 # Extra packages to add to the Build-Depends section. Mainline builds
 # can have this section empty, unless cross-building.
-
 # The default is enough to install the Android toolchain, including clang.
-DEB_TOOLCHAIN = linux-initramfs-halium-generic:arm64, binutils-aarch64-linux-gnu, clang-android-12.0-r416183b
-#DEB_TOOLCHAIN = vim, linux-packaging-snippets, linux-initramfs-halium-generic:arm64, binutils-aarch64-linux-gnu, clang-android-10.0-r370808, gcc-4.9-aarch64-linux-android, g++-4.9-aarch64-linux-android, libgcc-4.9-dev-aarch64-linux-android-cross
+DEB_TOOLCHAIN = linux-initramfs-halium-generic:arm64, binutils-aarch64-linux-gnu, clang-android-12.0-r416183b, gcc-4.9-aarch64-linux-android, g++-4.9-aarch64-linux-android, libgcc-4.9-dev-aarch64-linux-android-cross
+#DEB_TOOLCHAIN = linux-initramfs-halium-generic:arm64, binutils-aarch64-linux-gnu, gcc-4.9-aarch64-linux-android, g++-4.9-aarch64-linux-android, libgcc-4.9-dev-aarch64-linux-android-cross
 
 # Where we're building on
 DEB_BUILD_ON = amd64
